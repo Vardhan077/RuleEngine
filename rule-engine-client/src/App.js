@@ -20,12 +20,16 @@ function App() {
             console.error('Error fetching rules', error);
         }
     };
-    // Fetch rules from the database
+
     useEffect(() => {
         fetchRules();
     }, []);
 
     const createRule = async () => {
+        if (!ruleId || !ruleString) {
+            alert('Please provide both Rule ID and Rule String.');
+            return;
+        }
         try {
             const response = await axios.post('http://localhost:5000/create-rule', { ruleId, ruleString });
             console.log(response.data);
@@ -46,19 +50,19 @@ function App() {
     
             let astToEvaluate;
     
-            // If more than one rule is selected, combine them first
+           
             if (selectedRules.length > 1) {
                 const response = await axios.post('http://localhost:5000/combine-rules', { ruleIds: selectedRules });
-                astToEvaluate = response.data.combinedAST; // Use the combined AST for evaluation
+                astToEvaluate = response.data.combinedAST;
             } else {
-                // Fetch the AST of the single selected rule
+             
                 const response = await axios.get(`http://localhost:5000/rule/${selectedRules[0]}`);
-                astToEvaluate = response.data.ast; // Use the single rule's AST
+                astToEvaluate = response.data.ast; 
             }
     
-            // Now, evaluate the final AST (either single or combined) against the data
+          
             const evaluationResponse = await axios.post('http://localhost:5000/evaluate-rule', { ast: astToEvaluate, data: evaluationData });
-            setResult(evaluationResponse.data.result); // Set the result
+            setResult(evaluationResponse.data.result); 
         } catch (error) {
             console.error('Error evaluating rule', error);
         }
@@ -93,7 +97,6 @@ function App() {
         <div className="AppContainer">
     <h1 className="heading">Rule Engine</h1>
 
-    {/* Create Rule Section */}
     <div className='createRule'>
         <h2 className='subhead'>Create Rule</h2>
         <div className='inside'>
@@ -114,7 +117,6 @@ function App() {
         </div>
     </div>
 
-    {/* Evaluate Rule Section */}
     <div className="evaluateRule">
         <h2>Evaluate Rule</h2>
         <div className="inside">
@@ -144,7 +146,6 @@ function App() {
             />
             <button onClick={evaluateRule}>Evaluate Rule</button>
 
-            {/* Display the result right below the form */}
             {result !== null && (
                 <div className="result-container">
                     <p className="evaluation-result">
@@ -155,7 +156,6 @@ function App() {
         </div>
     </div>
 
-    {/* Combine Rules Section */}
     <div className="combineRules">
         <h2>Combine Rules</h2>
         <div className="inside">
