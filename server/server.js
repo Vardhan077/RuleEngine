@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { MongoClient } = require('mongodb');
 
 const app = express();
 app.use(cors());
@@ -9,16 +10,19 @@ app.use(bodyParser.json());
 
 
 const connectDB = async () => {
+    console.log("in connct db")
     try {
-        const uri = 'mongodb://localhost:27017/ruleEngine';
-        await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+        const uri = 'mongodb://127.0.0.1:27017/ruleEngine';
+        await mongoose.connect(uri);
         console.log('MongoDB connected successfully');
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);
     }
 };
 
-connectDB();
+
+
+
 // Rule schema
 const ruleSchema = new mongoose.Schema({
     ruleId: { type: String, required: true },
@@ -118,6 +122,7 @@ function cleanExpression(expr) {
 app.get('/rule', async (req, res) => {
     console.log('Fetching rules...');
     try {
+        await connectDB();
         const rules = await Rule.find({});
         console.log(rules);
         if (rules.length === 0) {
@@ -125,7 +130,7 @@ app.get('/rule', async (req, res) => {
         }
         res.json({ rules });
     } catch (error) {
-        console.log("errrrrrrrrr")
+        console.log("errrrrrrrrr",error)
         res.status(500).json({ message: 'Error fetching rules', error });
     }
 });
@@ -133,11 +138,12 @@ app.get('/rule', async (req, res) => {
 // API to create rule and store AST
 app.post('/create-rule', async (req, res) => {
     const { ruleId, ruleString } = req.body;
-    console.log("executed")
+    // console.log("executed")
     try {
         const ast = parseExpression(ruleString);
         const newRule = new Rule({ ruleId, ast });
         await newRule.save();
+        console.log(newRule,'is rule');
         res.json({ message: 'Rule created successfully', ast });
     } catch (error) {
         res.status(500).json({ message: 'Error saving rule', error });
